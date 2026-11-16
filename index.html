@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RealTime Translator | Affordable AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .transcript { max-height: 400px; overflow-y: auto; }
+    .speaking { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-4xl mx-auto p-4">
+    <header class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-blue-700">RealTime Translator</h1>
+      <p class="text-gray-600">Fluid Spanish ↔ English conversations for apartment prospects</p>
+      <p class="text-sm text-green-600 mt-1">✅ Works on computer & phone • Teams-friendly ecosystem</p>
+    </header>
+
+    <!-- Settings -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <h2 class="font-semibold mb-2">Azure Speech Settings</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input id="speechKey" type="password" placeholder="Azure Speech Key" class="border rounded p-2 text-sm">
+        <input id="speechRegion" type="text" placeholder="Region (e.g. eastus)" value="eastus" class="border rounded p-2 text-sm">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+        <div>
+          <label class="text-sm text-gray-600">Source Language</label>
+          <select id="sourceLang" class="w-full border rounded p-2 mt-1">
+            <option value="en-US">English (US)</option>
+            <option value="es-ES" selected>Spanish (Spain)</option>
+            <option value="es-MX">Spanish (Mexico)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-gray-600">Target Language</label>
+          <select id="targetLang" class="w-full border rounded p-2 mt-1">
+            <option value="en" selected>English</option>
+            <option value="es">Spanish</option>
+          </select>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">Keys stay in your browser. For production, use a backend proxy.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex justify-center gap-4 mb-6">
+      <button id="startBtn" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold shadow">
+        🎙️ Start Listening
+      </button>
+      <button id="stopBtn" disabled class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold shadow opacity-50">
+        ⏹ Stop
+      </button>
+    </div>
+
+    <!-- Status -->
+    <div id="status" class="text-center text-sm text-gray-600 mb-4">Ready. Enter Azure key and click Start.</div>
+
+    <!-- Transcripts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="font-semibold text-blue-600 mb-2">Original</h3>
+        <div id="originalTranscript" class="transcript text-sm space-y-2 min-h-[200px] bg-gray-50 p-3 rounded"></div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="font-semibold text-green-600 mb-2">Translation</h3>
+        <div id="translatedTranscript" class="transcript text-sm space-y-2 min-h-[200px] bg-gray-50 p-3 rounded"></div>
+      </div>
+    </div>
+
+    <footer class="text-center text-xs text-gray-500 mt-8">
+      <p>Powered by Azure Speech Services • Built for property management teams</p>
+      <p class="mt-1">Monetize as SaaS: per-seat, per-conversation, or white-label for leasing companies.</p>
+    </footer>
+  </div>
+
+  <script>
+    let recognizer = null;
+    let isListening = false;
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const status = document.getElementById('status');
+    const originalDiv = document.getElementById('originalTranscript');
+    const translatedDiv = document.getElementById('translatedTranscript');
+
+    function addMessage(container, text, isInterim = false) {
+      const div = document.createElement('div');
+      div.className = isInterim ? 'text-gray-400 italic' : 'text-gray-800';
+      div.textContent = text;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return div;
+    }
+
+    async function startTranslation() {
+      const key = document.getElementById('speechKey').value.trim();
+      const region = document.getElementById('speechRegion').value.trim();
+      const sourceLang = document.getElementById('sourceLang').value;
+      const targetLang = document.getElementById('targetLang').value;
+
+      if (!key || !region) {
+        status.textContent = '⚠️ Please enter Azure Speech Key and Region';
+        status.className = 'text-center text-sm text-red-600 mb-4';
+        return;
+      }
+
+      try {
+        const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(key, region);
+        speechConfig.speechRecognitionLanguage = sourceLang;
+        speechConfig.addTargetLanguage(targetLang);
+        
+        // Neural voice for natural speech
+        const voiceMap = {
+          'en': 'en-US-AriaNeural',
+          'es': 'es-ES-ElviraNeural'
+        };
+        speechConfig.voiceName = voiceMap[targetLang] || 'en-US-AriaNeural';
+
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        recognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+
+        recognizer.recognizing = (s, e) => {
+          // Interim results
+          if (e.result.reason === SpeechSDK.ResultReason.TranslatingSpeech) {
+            status.textContent = '🎙️ Listening... (interim)';
+            status.className = 'text-center text-sm text-blue-600 mb-4 speaking';
+          }
+        };
+
+        recognizer.recognized = (s, e) => {
+          if (e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech) {
+            const original = e.result.text;
+            const translated = e.result.translations.get(targetLang);
+            
+            addMessage(originalDiv, original);
+            addMessage(translatedDiv, translated);
+            
+            status.textContent = '✅ Translated';
+            status.className = 'text-center text-sm text-green-600 mb-4';
+          }
+        };
+
+        recognizer.synthesizing = (s, e) => {
+          if (e.result.audio && e.result.audio.byteLength > 0) {
+            const audioBlob = new Blob([e.result.audio], { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play().catch(err => console.log('Audio play error:', err));
+          }
+        };
+
+        recognizer.canceled = (s, e) => {
+          status.textContent = '❌ Error: ' + (e.errorDetails || 'Canceled');
+          status.className = 'text-center text-sm text-red-600 mb-4';
+          stopTranslation();
+        };
+
+        await recognizer.startContinuousRecognitionAsync();
+        isListening = true;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        stopBtn.classList.remove('opacity-50');
+        status.textContent = '🎙️ Listening... Speak now';
+        status.className = 'text-center text-sm text-blue-600 mb-4 speaking';
+
+      } catch (err) {
+        status.textContent = '❌ Error: ' + err.message;
+        status.className = 'text-center text-sm text-red-600 mb-4';
+      }
+    }
+
+    function stopTranslation() {
+      if (recognizer) {
+        recognizer.stopContinuousRecognitionAsync();
+        recognizer.close();
+        recognizer = null;
+      }
+      isListening = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      stopBtn.classList.add('opacity-50');
+      status.textContent = '⏸️ Stopped';
+      status.className = 'text-center text-sm text-gray-600 mb-4';
+    }
+
+    startBtn.onclick = startTranslation;
+    stopBtn.onclick = stopTranslation;
+
+    // Clear transcripts on start
+    startBtn.addEventListener('click', () => {
+      originalDiv.innerHTML = '';
+      translatedDiv.innerHTML = '';
+    });
+  </script>
+</body>
+</html>
