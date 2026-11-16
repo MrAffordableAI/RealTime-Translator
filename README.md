@@ -1,55 +1,59 @@
-# RealTime Translator
+# FluentTalk — Real-Time Conversation Interpreter
 
-A smooth, real-time speech-to-speech translation web app for fluid multilingual conversations. Optimized for Spanish ↔ English, ideal for apartment leasing teams communicating with prospects.
+A polished, sellable real-time speech-to-speech interpreter focused on fluid Spanish ↔ English conversations for apartment leasing and business use.
 
-Works on computer or phone browsers. Designed for business use and easy monetization as a SaaS tool.
+**Live demo (enable GitHub Pages):** https://mraffordableai.github.io/RealTime-Translator/
 
-## Features
-- Real-time speech recognition + translation + text-to-speech
-- Continuous listening for natural conversations
-- Dual language support (easily extendable)
-- Clean, professional UI
-- Conversation transcript history
-- Works on desktop and mobile
+## What You Can Sell
 
-## Quick Start (Azure Speech Services)
-1. Create a free Azure account and Speech resource: https://portal.azure.com
-2. Get your Speech Key and Region from the resource keys.
-3. Open `index.html` in a browser (or host on GitHub Pages).
-4. Enter your Azure Speech Key and Region in the settings panel.
-5. Select source/target languages (default: English → Spanish).
-6. Click Start and speak. Translation plays aloud and shows in transcript.
+- Specialized real-time interpreter for property management / leasing teams
+- White-label version for other property companies
+- Per-seat or usage-based SaaS
+- Conversation logging + export for prospect notes / CRM
+- Works on computer or phone browser — no install required
 
-**For production/monetization:**
-- Add user accounts, usage tracking, billing (Stripe).
-- Multi-user rooms for two-way conversations.
-- Integration with Teams via bots or embedding.
-- Conversation logging for CRM (Yardi/PMS bolt-on).
-- White-label for property management companies.
+### Suggested Pricing
+- **Starter** $29/mo — 1 user, ~10 hours
+- **Team** $99/mo — 5 users, shared history
+- **Enterprise** custom — white-label, CRM/Yardi hooks, unlimited
 
-## Microsoft Teams Alternative (Immediate Use)
-If you already use Teams with Copilot licenses, enable the built-in **Interpreter agent**:
-- In a meeting/call: More → Language and speech → Interpreter → Turn on.
-- Use **Consecutive interpretation** mode for natural two-way Spanish-English conversations.
-- Supports voice cloning-like natural speech.
+Azure Speech costs are low at volume; strong margins possible when positioned as a vertical tool rather than a generic translator.
 
-This custom app gives you full control, branding, and offline-capable paths for monetization beyond Teams.
+## How to Run / Demo
 
-## Live Demo
-https://mraffordableai.github.io/RealTime-Translator/
+1. Create free Azure account → create Speech resource (F0 free tier is enough for demos).
+2. Copy Speech Key + Region.
+3. Open `index.html` (or the GitHub Pages URL after enabling Pages).
+4. Paste key, choose languages, click **Start Interpreter**.
+5. Speak. Translation appears and is spoken back in natural neural voice.
 
-(Requires your own Azure key for full translation; demo shows UI.)
+**Free tier notes:** ~5 hours of speech translation per month. Perfect for sales demos and early customers.
 
-## Tech Stack
-- Vanilla HTML/CSS/JS
-- Microsoft Cognitive Services Speech SDK (CDN)
-- Azure Speech Translation (real-time)
+## Features in This Version
+- Continuous real-time listening + translation + TTS
+- Clean dual transcript (original + translation)
+- Export conversation to text file
+- Multiple languages (easy to extend)
+- Mobile-friendly
+- Professional UI ready for customer demos
 
-## Next Steps for Production
-- Backend proxy for API keys (never expose in frontend).
-- User authentication & subscriptions.
-- Multi-party conversation rooms.
-- Offline mode with Web Speech API fallback.
-- Analytics for prospect conversations.
+## Production / Monetization Roadmap
+1. Backend proxy so API keys are never in the browser (required for real customers).
+2. User accounts + Stripe billing + usage metering.
+3. Multi-user conversation rooms (two devices, one conversation).
+4. Conversation history stored per customer / property.
+5. Optional integration with Teams or your existing Affordable AI File Reviewer.
+6. White-label branding settings.
 
-Built for fluid conversations in property management and beyond.
+## Enable GitHub Pages (for live demo link)
+1. Go to the repo → Settings → Pages.
+2. Source: Deploy from a branch → `main` / `(root)`.
+3. Save. Site will be live at the URL above in ~1 minute.
+
+## Tech
+- Static HTML + Tailwind CDN + Microsoft Cognitive Services Speech SDK
+- Azure Speech Translation (real-time speech-to-speech)
+
+This is a complete, working foundation you can productize and sell. The core interpreter works today with a free Azure key.
+
+Built for MrAffordableAI projects.
