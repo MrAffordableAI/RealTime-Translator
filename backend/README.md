@@ -1,19 +1,9 @@
-# FluentTalk Backend
+# Backend disabled
 
-Starter for production features:
-- API key proxy (`/token`)
-- WebSocket rooms (`/ws/{room_id}`) for multi-device conversations
+Do not deploy this starter. The former /token returned the Azure subscription key; unauthenticated WebSocket rooms allowed arbitrary peers to join and relay messages.
 
-## Run
-```bash
-pip install -r requirements.txt
-export AZURE_SPEECH_KEY=yourkey
-export AZURE_SPEECH_REGION=eastus
-uvicorn main:app --reload --port 8000
-```
+The repaired module returns HTTP 410 at /token, rejects WebSockets before accepting, and has no wildcard CORS or credential reads. It cannot provide production translation credentials or rooms.
 
-## Deploy
-- Railway / Render / Fly.io: connect this folder, set env vars.
-- Then update frontend to fetch key from your backend URL instead of local input.
+The frontend-only demo connects directly to Azure using a user-entered, memory-only demo key. Production needs authenticated short-lived Azure token issuance, rate limits, exact origin restrictions, room authorization, and a reviewed privacy/retention policy. Do not restore the old key proxy.
 
-This is the foundation for accounts, billing, and true multi-user rooms.
+If the old backend was public with a real key configured, rotate that key in Azure. Repository changes do not revoke credentials already exposed.

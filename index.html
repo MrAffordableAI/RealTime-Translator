@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FluentTalk | Best Real-Time Conversation Interpreter</title>
+  <title>FluentTalk | Conversation Interpreter Demo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <style>
@@ -38,14 +38,14 @@
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-5 mb-5">
       <h3 class="font-semibold mb-3">Azure Speech Connection</h3>
       <div class="grid md:grid-cols-2 gap-3">
-        <input id="speechKey" type="password" placeholder="Azure Speech Key" class="border rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600">
+        <input id="speechKey" type="password" autocomplete="off" placeholder="Azure Speech Key" class="border rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600">
         <input id="speechRegion" type="text" value="eastus" placeholder="Region" class="border rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600">
       </div>
       <div class="grid md:grid-cols-3 gap-3 mt-3">
         <div>
           <label class="text-xs font-medium">Source (or Auto)</label>
           <select id="sourceLang" class="w-full border rounded-lg px-3 py-2 text-sm mt-1 dark:bg-slate-700 dark:border-slate-600">
-            <option value="auto">Auto-detect</option>
+            <option value="auto">Auto-detect English/Spanish at start</option>
             <option value="en-US">English (US)</option>
             <option value="es-MX" selected>Spanish (Mexico)</option>
             <option value="es-ES">Spanish (Spain)</option>
@@ -68,13 +68,13 @@
           <label class="text-xs font-medium">Voice</label>
           <select id="voiceSelect" class="w-full border rounded-lg px-3 py-2 text-sm mt-1 dark:bg-slate-700 dark:border-slate-600">
             <option value="en-US-AriaNeural">Aria (EN)</option>
-            <option value="es-MX-DaliaNeural" selected>Dalia (ES-MX)</option>
+            <option value="es-MX-DaliaNeural">Dalia (ES-MX)</option>
             <option value="es-ES-ElviraNeural">Elvira (ES)</option>
             <option value="fr-FR-DeniseNeural">Denise (FR)</option>
           </select>
         </div>
       </div>
-      <p class="text-xs text-slate-500 mt-2">Keys stay local. Free Azure tier ≈5 hours/month. Settings saved in browser.</p>
+      <p class="text-xs text-slate-500 mt-2">Personal demo only: key stays in memory until you clear it or reload. Audio is sent to Azure. Use headphones to avoid microphone feedback. Non-secret settings and recent transcripts are saved on this device. Clear removes saved conversations.</p>
     </div>
 
     <!-- Controls -->
@@ -116,155 +116,16 @@
         <p class="text-slate-600 dark:text-slate-300 mt-1">Phone or computer. Perfect for on-site tours or office calls.</p>
       </div>
       <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
-        <h4 class="font-semibold">Sellable SaaS</h4>
-        <p class="text-slate-600 dark:text-slate-300 mt-1">White-label, multi-seat, history, CRM hooks. High-margin vertical product.</p>
+        <h4 class="font-semibold">Personal Demo</h4>
+        <p class="text-slate-600 dark:text-slate-300 mt-1">Single-device translation. Accounts, billing, and multi-device rooms are not implemented.</p>
       </div>
     </section>
   </main>
 
   <footer class="text-center text-xs text-slate-500 py-6 border-t dark:border-slate-700">
-    FluentTalk • MrAffordableAI/RealTime-Translator • Ready to productize
+    FluentTalk • MrAffordableAI/RealTime-Translator • Personal demo • Not production ready
   </footer>
 
-  <script>
-    let recognizer = null;
-    const $ = id => document.getElementById(id);
-    const startBtn = $('startBtn'), stopBtn = $('stopBtn'), clearBtn = $('clearBtn'), exportBtn = $('exportBtn');
-    const status = $('status'), origDiv = $('originalTranscript'), transDiv = $('translatedTranscript');
-    const historyList = $('historyList');
-
-    // Persist settings
-    ['speechKey','speechRegion','sourceLang','targetLang','voiceSelect'].forEach(id => {
-      const el = $(id);
-      const saved = localStorage.getItem(id);
-      if (saved) el.value = saved;
-      el.addEventListener('change', () => localStorage.setItem(id, el.value));
-    });
-
-    // Theme
-    const themeToggle = $('themeToggle');
-    if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
-    themeToggle.onclick = () => {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
-    };
-    themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
-
-    function addMsg(container, text) {
-      const el = document.createElement('div');
-      el.className = 'text-slate-800 dark:text-slate-200';
-      el.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
-      container.appendChild(el);
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function setStatus(t, type='') {
-      status.textContent = t;
-      status.className = 'text-center text-sm mb-4 ' + (type==='listening'?'text-blue-600 pulse': type==='error'?'text-red-600':'');
-    }
-
-    async function start() {
-      const key = $('speechKey').value.trim();
-      const region = $('speechRegion').value.trim() || 'eastus';
-      const source = $('sourceLang').value;
-      const target = $('targetLang').value;
-      const voice = $('voiceSelect').value;
-      if (!key) { setStatus('Enter Azure Speech Key', 'error'); return; }
-
-      try {
-        const config = SpeechSDK.SpeechTranslationConfig.fromSubscription(key, region);
-        if (source !== 'auto') config.speechRecognitionLanguage = source;
-        config.addTargetLanguage(target);
-        config.voiceName = voice;
-
-        let autoDetect = null;
-        if (source === 'auto') {
-          autoDetect = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(['en-US','es-MX','es-ES','fr-FR','pt-BR']);
-        }
-
-        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-        recognizer = autoDetect
-          ? SpeechSDK.TranslationRecognizer.FromConfig(config, autoDetect, audioConfig)
-          : new SpeechSDK.TranslationRecognizer(config, audioConfig);
-
-        recognizer.recognized = (s, e) => {
-          if (e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech) {
-            addMsg(origDiv, e.result.text);
-            const tr = e.result.translations.get(target);
-            if (tr) addMsg(transDiv, tr);
-            saveHistory();
-            setStatus('Listening…', 'listening');
-          }
-        };
-
-        recognizer.synthesizing = (s, e) => {
-          if (e.result.audio?.byteLength > 0) {
-            const url = URL.createObjectURL(new Blob([e.result.audio], {type:'audio/wav'}));
-            new Audio(url).play().catch(()=>{});
-          }
-        };
-
-        recognizer.canceled = (s, e) => { setStatus('Error: '+(e.errorDetails||'canceled'), 'error'); stop(); };
-
-        await recognizer.startContinuousRecognitionAsync();
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-        stopBtn.classList.remove('opacity-60');
-        stopBtn.classList.add('bg-red-600');
-        setStatus('Listening — speak now', 'listening');
-      } catch (err) { setStatus('Error: '+err.message, 'error'); }
-    }
-
-    function stop() {
-      if (recognizer) { recognizer.stopContinuousRecognitionAsync(() => recognizer.close()); recognizer = null; }
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      stopBtn.classList.add('opacity-60');
-      stopBtn.classList.remove('bg-red-600');
-      setStatus('Stopped');
-      saveHistory();
-    }
-
-    function saveHistory() {
-      const orig = Array.from(origDiv.children).map(e => e.textContent);
-      const trans = Array.from(transDiv.children).map(e => e.textContent);
-      if (!orig.length) return;
-      const entry = { ts: Date.now(), orig, trans };
-      let hist = JSON.parse(localStorage.getItem('conversations') || '[]');
-      hist.unshift(entry);
-      hist = hist.slice(0, 20);
-      localStorage.setItem('conversations', JSON.stringify(hist));
-      renderHistory();
-    }
-
-    function renderHistory() {
-      const hist = JSON.parse(localStorage.getItem('conversations') || '[]');
-      historyList.innerHTML = hist.map(h => `<div class="text-xs text-slate-500">${new Date(h.ts).toLocaleString()} — ${h.orig.length} turns</div>`).join('');
-    }
-    renderHistory();
-
-    function clearAll() { origDiv.innerHTML = ''; transDiv.innerHTML = ''; }
-
-    function exportConv() {
-      const orig = Array.from(origDiv.children).map(e => e.textContent);
-      const trans = Array.from(transDiv.children).map(e => e.textContent);
-      let txt = 'FluentTalk Export\n' + new Date().toISOString() + '\n\n';
-      const n = Math.max(orig.length, trans.length);
-      for (let i = 0; i < n; i++) {
-        if (orig[i]) txt += orig[i] + '\n';
-        if (trans[i]) txt += trans[i] + '\n\n';
-      }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([txt], {type:'text/plain'}));
-      a.download = 'fluentalktalk-' + Date.now() + '.txt';
-      a.click();
-    }
-
-    startBtn.onclick = start;
-    stopBtn.onclick = stop;
-    clearBtn.onclick = clearAll;
-    exportBtn.onclick = exportConv;
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

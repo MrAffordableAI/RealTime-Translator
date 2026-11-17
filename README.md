@@ -1,70 +1,36 @@
-# FluentTalk — Market-Leading Real-Time Conversation Interpreter
+# FluentTalk personal speech translation demo
 
-The most practical real-time speech-to-speech translator for businesses (especially property management / leasing). Focused on fluid Spanish ↔ English conversations with expandable languages.
+This is a single-device browser demo, not a production SaaS or a secure hosted credential service.
 
-**Live demo:** https://mraffordableai.github.io/RealTime-Translator/ (enable Pages if needed)
+## Verified demo configuration
 
-## Why This Can Be the Best
+- Existing public URL: https://real-time-translator-six.vercel.app/ — inspected on November 17, 2026; it currently serves the old backend status JSON, not the frontend.
+- Local frontend: run `node scripts/build.cjs` then `node scripts/serve.cjs`; open http://127.0.0.1:8085/
+- Vercel must use the **repository root**, Framework Preset **Other**, Build Command `node scripts/build.cjs`, Output Directory `dist`. Clear any dashboard override that points to `backend` or starts FastAPI. The checked-in vercel.json builds only index.html and app.js.
+- Do not deploy backend/main.py. The old key-returning /token route and unauthenticated WebSocket relay are disabled.
 
-- **Vertical specialization**: Built for leasing teams talking to Spanish-speaking prospects (not a generic Google Translate clone).
-- **True conversation flow**: Continuous recognition + neural TTS with low latency.
-- **Auto language detection** support (Azure).
-- **Conversation history + export** for prospect notes / CRM.
-- **Mobile + desktop** in browser, no install.
-- **Backend-ready**: Key proxy + multi-device rooms structure included.
-- **Strong unit economics**: Azure Speech is cheap; sell as specialized SaaS with high margins.
-- **White-label + integration ready** for Yardi / property systems.
+## Azure setup still required
 
-## Features in This Version
-- Real-time speech recognition, translation, and natural neural voice playback
-- Auto language detection option
-- Dual transcript with timestamps
-- Local conversation history (survives refresh)
-- Export to text
-- Multiple languages + voice selection
-- Dark mode
-- Professional product UI with pricing and positioning
-- Settings persist in browser
+1. Create/use an Azure Speech resource with speech translation and speech synthesis access; obtain its key and matching region in Azure. Do not paste credentials into GitHub, chat, URLs, or deployment files.
+2. Open the trusted HTTPS frontend or localhost, enter the key and exact region, and allow microphone access. The key stays in page memory; it is sent only by the Azure SDK to Azure. Clear or reload removes it. Legacy saved keys are purged.
+3. Choose different source/target languages. Voice choices follow the target. Auto mode detects English/Spanish at session start; stop and restart to change speaker language. It is not automatic continuous two-way interpretation.
+4. Use headphones. Translated speaker audio can otherwise be captured by the microphone.
+5. Speech recognition, translation and synthesis must all be available for the resource/region with sufficient quota. No free-tier allowance or production accuracy is promised.
 
-## Quick Start (Demo)
-1. Create free Azure Speech resource → get Key + Region.
-2. Open the live demo or `index.html`.
-3. Enter key/region, choose languages (or auto-detect), start speaking.
+Use a dedicated demo resource and rotate any key that was exposed through an earlier public /token deployment. Removing the endpoint does not revoke previously disclosed keys.
 
-Free tier ~5 hours/month of translation — enough for demos and early users.
+## Preserved functions and limits
 
-## Multi-Device Rooms & Production Backend
-The `backend/` folder contains a starter FastAPI + WebSocket server for:
-- Secure API key proxy (never expose keys to browsers)
-- Room-based multi-device conversations
-- Future user accounts and usage metering
+Timestamped dual transcripts, local recent history, text export, theme and non-secret settings remain. Clear now deletes saved conversations and clears the key. Transcripts remain on this device until cleared; do not use real tenant data in demos.
 
-**To run backend locally:**
-```bash
-cd backend
-pip install -r requirements.txt
-# Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION env vars
-uvicorn main:app --reload --port 8000
-```
-Then point the frontend at it for production mode.
+Translation uses TranslationRecognizer and callback-based start/stop. Translated text is sent to a separate SpeechSynthesizer with a matching target voice; playback is queued until audio ends. Controls lock during sessions. Stop, failures and stale callbacks clean up their own session.
 
-**Deploy backend free/cheap:** Railway, Render, Fly.io, or Azure Container Apps.
+Public/production use requires an authenticated, rate-limited short-lived token service, exact origin policy, authorization for rooms, usage controls, and a privacy/retention design. None is claimed implemented.
 
-## Monetization Path
-- Starter $29/mo (1 seat, limited hours)
-- Team $99/mo (5 seats, shared history)
-- Enterprise: white-label, CRM hooks, unlimited, dedicated support
+## Focused verification
 
-Position against generic tools by owning the property management / leasing use case.
+Run `node --check app.js` and `node --test tests/app.test.cjs`, then the frontend build. Tests mock Azure SDK/DOM behavior: callbacks, races, translation display, playback order, languages, history safety, key removal, errors and backend source security invariants. They do not prove live Azure recognition, audible output, or backend HTTP runtime behavior. A real key/resource and microphone/audio check remain required before declaring the live speech demo verified.
 
-## Next Features for Dominance
-- Full multi-party WebRTC rooms with translated audio streams
-- Speaker diarization
-- Glossary / custom terminology (apartment terms)
-- Integration with Teams or phone systems
-- Usage analytics dashboard
-- Stripe billing + accounts
-
-This is a complete, working foundation you can sell and iterate into the category leader.
-
-Built under MrAffordableAI.
+Microsoft SDK reference:
+- https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech
+- https://learn.microsoft.com/javascript/api/microsoft-cognitiveservices-speech-sdk/translationrecognizer
