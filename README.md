@@ -1,59 +1,70 @@
-# FluentTalk — Real-Time Conversation Interpreter
+# FluentTalk — Market-Leading Real-Time Conversation Interpreter
 
-A polished, sellable real-time speech-to-speech interpreter focused on fluid Spanish ↔ English conversations for apartment leasing and business use.
+The most practical real-time speech-to-speech translator for businesses (especially property management / leasing). Focused on fluid Spanish ↔ English conversations with expandable languages.
 
-**Live demo (enable GitHub Pages):** https://mraffordableai.github.io/RealTime-Translator/
+**Live demo:** https://mraffordableai.github.io/RealTime-Translator/ (enable Pages if needed)
 
-## What You Can Sell
+## Why This Can Be the Best
 
-- Specialized real-time interpreter for property management / leasing teams
-- White-label version for other property companies
-- Per-seat or usage-based SaaS
-- Conversation logging + export for prospect notes / CRM
-- Works on computer or phone browser — no install required
-
-### Suggested Pricing
-- **Starter** $29/mo — 1 user, ~10 hours
-- **Team** $99/mo — 5 users, shared history
-- **Enterprise** custom — white-label, CRM/Yardi hooks, unlimited
-
-Azure Speech costs are low at volume; strong margins possible when positioned as a vertical tool rather than a generic translator.
-
-## How to Run / Demo
-
-1. Create free Azure account → create Speech resource (F0 free tier is enough for demos).
-2. Copy Speech Key + Region.
-3. Open `index.html` (or the GitHub Pages URL after enabling Pages).
-4. Paste key, choose languages, click **Start Interpreter**.
-5. Speak. Translation appears and is spoken back in natural neural voice.
-
-**Free tier notes:** ~5 hours of speech translation per month. Perfect for sales demos and early customers.
+- **Vertical specialization**: Built for leasing teams talking to Spanish-speaking prospects (not a generic Google Translate clone).
+- **True conversation flow**: Continuous recognition + neural TTS with low latency.
+- **Auto language detection** support (Azure).
+- **Conversation history + export** for prospect notes / CRM.
+- **Mobile + desktop** in browser, no install.
+- **Backend-ready**: Key proxy + multi-device rooms structure included.
+- **Strong unit economics**: Azure Speech is cheap; sell as specialized SaaS with high margins.
+- **White-label + integration ready** for Yardi / property systems.
 
 ## Features in This Version
-- Continuous real-time listening + translation + TTS
-- Clean dual transcript (original + translation)
-- Export conversation to text file
-- Multiple languages (easy to extend)
-- Mobile-friendly
-- Professional UI ready for customer demos
+- Real-time speech recognition, translation, and natural neural voice playback
+- Auto language detection option
+- Dual transcript with timestamps
+- Local conversation history (survives refresh)
+- Export to text
+- Multiple languages + voice selection
+- Dark mode
+- Professional product UI with pricing and positioning
+- Settings persist in browser
 
-## Production / Monetization Roadmap
-1. Backend proxy so API keys are never in the browser (required for real customers).
-2. User accounts + Stripe billing + usage metering.
-3. Multi-user conversation rooms (two devices, one conversation).
-4. Conversation history stored per customer / property.
-5. Optional integration with Teams or your existing Affordable AI File Reviewer.
-6. White-label branding settings.
+## Quick Start (Demo)
+1. Create free Azure Speech resource → get Key + Region.
+2. Open the live demo or `index.html`.
+3. Enter key/region, choose languages (or auto-detect), start speaking.
 
-## Enable GitHub Pages (for live demo link)
-1. Go to the repo → Settings → Pages.
-2. Source: Deploy from a branch → `main` / `(root)`.
-3. Save. Site will be live at the URL above in ~1 minute.
+Free tier ~5 hours/month of translation — enough for demos and early users.
 
-## Tech
-- Static HTML + Tailwind CDN + Microsoft Cognitive Services Speech SDK
-- Azure Speech Translation (real-time speech-to-speech)
+## Multi-Device Rooms & Production Backend
+The `backend/` folder contains a starter FastAPI + WebSocket server for:
+- Secure API key proxy (never expose keys to browsers)
+- Room-based multi-device conversations
+- Future user accounts and usage metering
 
-This is a complete, working foundation you can productize and sell. The core interpreter works today with a free Azure key.
+**To run backend locally:**
+```bash
+cd backend
+pip install -r requirements.txt
+# Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION env vars
+uvicorn main:app --reload --port 8000
+```
+Then point the frontend at it for production mode.
 
-Built for MrAffordableAI projects.
+**Deploy backend free/cheap:** Railway, Render, Fly.io, or Azure Container Apps.
+
+## Monetization Path
+- Starter $29/mo (1 seat, limited hours)
+- Team $99/mo (5 seats, shared history)
+- Enterprise: white-label, CRM hooks, unlimited, dedicated support
+
+Position against generic tools by owning the property management / leasing use case.
+
+## Next Features for Dominance
+- Full multi-party WebRTC rooms with translated audio streams
+- Speaker diarization
+- Glossary / custom terminology (apartment terms)
+- Integration with Teams or phone systems
+- Usage analytics dashboard
+- Stripe billing + accounts
+
+This is a complete, working foundation you can sell and iterate into the category leader.
+
+Built under MrAffordableAI.
