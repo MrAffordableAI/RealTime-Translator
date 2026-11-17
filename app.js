@@ -23,8 +23,8 @@ function controls(busy) {
   $('stopBtn').disabled = !busy;
   for (const id of ['speechKey','speechRegion','sourceLang','targetLang','voiceSelect']) $(id).disabled = busy;
 }
-function syncVoices() {
-  const el = $('voiceSelect'), previous = el.value || storage.get('voiceSelect');
+function syncVoices(preferred) {
+  const el = $('voiceSelect'), previous = preferred || el.value;
   el.replaceChildren();
   for (const [value, label] of voices[$('targetLang').value]) {
     const option = document.createElement('option');
@@ -38,7 +38,7 @@ for (const id of ['speechRegion','sourceLang','targetLang']) {
   if (saved && (id === 'speechRegion' || [...$(id).options].some(o => o.value === saved))) $(id).value = saved;
   $(id).onchange = () => { storage.set(id, $(id).value); if (id === 'targetLang') syncVoices(); };
 }
-syncVoices();
+syncVoices(storage.get('voiceSelect'));
 $('voiceSelect').onchange = () => storage.set('voiceSelect', $('voiceSelect').value);
 function theme() { $('themeToggle').textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'; }
 if (storage.get('theme') === 'dark') document.documentElement.classList.add('dark');

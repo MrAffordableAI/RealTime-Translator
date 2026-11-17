@@ -150,3 +150,8 @@ test('backend fails closed and does not read or return Azure credentials',()=>{
   assert.match(source,/status_code=410/); assert.match(source,/websocket.close\(code=1008\)/);
   assert.doesNotMatch(source,/getenv|environ|websocket.accept|allow_origins|receive_text/);
 });
+
+test('saved compatible voice restored on reload',()=>{
+  const h=harness({saved:{targetLang:'es',voiceSelect:'es-ES-ElviraNeural'}});
+  assert.equal(h.elements.voiceSelect.value,'es-ES-ElviraNeural');
+});
